@@ -2,7 +2,7 @@ import { MailerModule } from '@nestjs-modules/mailer';
 import { EjsAdapter } from '@nestjs-modules/mailer/dist/adapters/ejs.adapter';
 import { Module } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { CacheService } from '../cache/cache.service';
+import { CacheModule } from '../cache/cache.module';
 import { MailController } from './mail.controller';
 import { MailService } from './mail.service';
 
@@ -28,8 +28,9 @@ import { MailService } from './mail.service';
       }),
       inject: [ConfigService],
     }),
+    CacheModule,
   ],
   controllers: [MailController],
-  providers: [MailService, CacheService],
+  providers: [MailService],
 })
 export class MailModule {}

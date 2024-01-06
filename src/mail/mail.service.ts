@@ -52,7 +52,7 @@ export class MailService {
         context,
       });
     } catch (err) {
-      console.error(err.message);
+      console.error(`sendMail: ${err.message}`);
       throw new ErrorHandler(ErrorCode.INTERNAL_SERVER_ERROR);
     }
   }
@@ -139,7 +139,8 @@ export class MailService {
       throw new ErrorHandler(ErrorCode.INVALID_ARGUMENT, 'code', '인증번호가 일치하지 않습니다.');
     }
 
-    await this.cacheService.hSet(key, 'status', 'confirmed');
+    // 인증 유효시간 10분
+    await this.cacheService.hSet(key, 'status', 'confirmed', 10 * 60);
 
     return true;
   }

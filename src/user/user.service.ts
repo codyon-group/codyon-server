@@ -51,7 +51,7 @@ export class UserService {
 
       return result;
     } catch (err) {
-      console.error(err.message);
+      console.error(`checkDuplicateNickName: ${err.message}`);
       throw new ErrorHandler(ErrorCode.INTERNAL_SERVER_ERROR);
     }
   }
@@ -72,7 +72,7 @@ export class UserService {
 
       return passwordHash;
     } catch (err) {
-      console.error(err.message);
+      console.error(`hashPassword: ${err.message}`);
       throw new ErrorHandler(ErrorCode.INTERNAL_SERVER_ERROR);
     }
   }
@@ -104,7 +104,7 @@ export class UserService {
         });
       });
     } catch (err) {
-      console.error(err.message);
+      console.error(`createUser: ${err.message}`);
       throw new ErrorHandler(ErrorCode.INTERNAL_SERVER_ERROR);
     }
   }
@@ -114,17 +114,18 @@ export class UserService {
     const checkSession = await this.checkSession(data.session_id, data.email);
 
     if (!checkSession) {
+      // 세션 만료
       throw new ErrorHandler(ErrorCode.UNAUTHORIZED);
     }
 
-    // email 중복
+    // email 중복 확인
     const isDuplicateEmail = await this.checkDuplicateEmail(data.email);
 
     if (isDuplicateEmail) {
       throw new ErrorHandler(ErrorCode.INVALID_ARGUMENT, 'email', '이미 가입된 이메일입니다.');
     }
 
-    // 비밀번호 일치 확인
+    // 비밀번호 일치여부 확인
     if (data.password !== data.confirm_password) {
       throw new ErrorHandler(
         ErrorCode.INVALID_ARGUMENT,

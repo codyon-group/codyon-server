@@ -18,6 +18,7 @@ export enum ErrorDetailCode {
   NOT_MATCHED = 'NOT_MATCHED',
   UNAUTHORIZED = 'UNAUTHORIZED',
   UNAVAILABLE = 'UNAVAILABLE',
+  EXPIRED = 'EXPIRED',
 }
 
 export enum ErrorMsg {
