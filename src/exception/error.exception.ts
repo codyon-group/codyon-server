@@ -24,13 +24,14 @@ function setErrorCode(status: number): string {
 }
 
 export function setValidatorError(
-  errorCode: string,
+  errorOption: { [key: string]: string },
   errorProperty: string,
 ): {
   code: ErrorCode;
   detailCode: ErrorDetailCode;
   msg?: string;
 } {
+  const errorCode = Object.keys(errorOption)[0];
   let code: ErrorCode;
   let detailCode: ErrorDetailCode;
   let msg: string;
@@ -52,6 +53,10 @@ export function setValidatorError(
   const detail = {} as ErrorDetailCode;
 
   detail[errorProperty] = detailCode;
+
+  if (/[ㄱ-ㅎ|ㅏ-ㅣ|가-힣]/gi.test(Object.values(errorOption)[0])) {
+    msg = Object.values(errorOption)[0];
+  }
 
   return { code, detailCode: detail, msg };
 }

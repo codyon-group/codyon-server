@@ -31,14 +31,14 @@ model User {
   // 사용자 ID
   id          String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   // oauth 가입 이용 사이트 // TODO enum type으로 변경 예정
-  provider    String         @db.Text
-  // 이메일 & facebook은 전화번호 일 수도 있겠네. 그럼 provider_id가 나은가 ?
-  email       String         @db.Text
+  provider    String[]       @db.Text
+  // 가입 시 사용된 email (facebook은 email 값이 전화번호 형태일 수 있음)
+  email       String         @unique @db.Text
   // 비밀번호 → 암호화 필요
   password    String?        @db.Text
-  // 약관 동의 항목을 알아야 하는지 ? // TODO 저장하지 않아도 되면 지우면 됨
-  term        TermsHistory   @relation(fields: [terms_id], references: [id])
-  terms_id    String         @db.Uuid
+  // 약관 동의 항목을 알아야 하는지 ? // TODO 저장하지 않아도 되면 지우면 됨 현재 임ㅈ
+  term        TermsHistory?   @relation(fields: [terms_id], references: [id])
+  terms_id    String?         @db.Uuid
   // 가입 시간
   joined_time DateTime       @default(now()) @db.Timestamptz()
   UserProfile Profile?
@@ -55,35 +55,34 @@ model User {
   @@map("user")
 }
 
-// 사용자 정보 (자주 사용하는 것들 위주 분리)
 model Profile {
   // 사용자 Id
-  user      User     @relation(fields: [user_id], references: [id])
-  user_id   String   @id @db.Uuid
+  user           User     @relation(fields: [user_id], references: [id])
+  user_id        String   @id @db.Uuid
   // 사용자 별칭
-  nick_name String   @db.Text
+  nick_name      String   @unique @db.Text
   // 사용자 프로필 이미지
-  image_url String?  @db.Text
+  img_url      String?  @db.Text
   // 사용자 신장
-  height    String?  @db.Text
-  // 사용자 체중
-  weight    String?  @db.Text
+  height         String   @db.Text
+  // 사용자 체중Ø
+  weight         String   @db.Text
   // 사용자의 신발 사이즈
-  feet_size String?  @db.Text
+  feet_size      String   @db.Text
   // 인스타그램 아이디 → 필수인지 확인 필요
-  sns_id    String?  @db.Text
+  sns_id         String?  @db.Text
   // 성별
-  gender    String   @db.Text
-  // 대표 스타일
-  style     String[] @db.Text
+  gender         String   @db.Text
+  // 대표 스타일 최대 3개
+  favorite_style String[] @db.Uuid
   // 패션 mbti
-  mbti      String?  @db.Text
+  mbti           String?  @db.Text
 
   @@map("user_profile")
 }
 
-// 운영자가 등록해야 함. styleTag를 어디어디 사용하는지 확인이 필요할 듯
-model StyleTag {
+// 운영자가 등록해야 함.
+model Style {
   // Row ID
   id   String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   // 스타일 종류 ex) 미니멀
