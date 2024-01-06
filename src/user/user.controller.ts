@@ -1,8 +1,11 @@
 import { Body, Controller, Post } from '@nestjs/common';
+import { UserTokenInfo } from '../auth/type';
 import { CheckEmail } from './dto/check-email.dto';
 import { CheckNickName } from './dto/check-nickname.dto';
+import { SingUpDetails } from './dto/sign-up-details.dto';
 import { SignUp } from './dto/sign-up.dto';
 import { UserService } from './user.service';
+
 @Controller('api/sign-up')
 export class UserController {
   constructor(private userService: UserService) {}
@@ -29,5 +32,13 @@ export class UserController {
     const result = await this.userService.signUp(data);
 
     return { success: result };
+  }
+
+  // oauth 가입 시 추가정보
+  @Post('/details')
+  async setDetails(@Body() data: SingUpDetails): Promise<{ data: UserTokenInfo }> {
+    const tokenInfo = await this.userService.setDetails(data);
+
+    return { data: tokenInfo };
   }
 }

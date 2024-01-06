@@ -54,6 +54,7 @@ export function setValidatorError(
 
   detail[errorProperty] = detailCode;
 
+  // dto 내 에러메세지를 정의한 경우 고려
   if (/[ㄱ-ㅎ|ㅏ-ㅣ|가-힣]/gi.test(Object.values(errorOption)[0])) {
     msg = Object.values(errorOption)[0];
   }

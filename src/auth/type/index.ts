@@ -21,3 +21,21 @@ export class RefreshTokenInfo {
   iat: number;
   exp: number;
 }
+
+export class OauthUserInfo {
+  email: string;
+  name: string;
+  gender: string;
+  nickName?: string;
+  profile_img?: string;
+}
+
+export class SignUpInfo extends OauthUserInfo {
+  need_sign_up: boolean;
+  session_id: string;
+}
+
+export class SignedUserInfo {
+  id: string;
+  provider: string[];
+}
