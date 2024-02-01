@@ -2,63 +2,57 @@
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
 generator client {
-  provider        = "prisma-client-js"
-  previewFeatures = ["multiSchema"]
+  provider = "prisma-client-js"
 }
 
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
-  schemas  = ["public", "fashion_test"]
 }
 
-// todo temrs에 대한 정의 또는 약관 동의 저장 논의 필요
+// TODO temrs에 대한 정의 또는 약관 동의 저장 논의 필요
 // 항상 최신 약관 동의 항목을 조회하여 사용한다 가정
 model TermsHistory {
   // Row ID
-  id          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  id           String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   // 약관 동의 항목
-  terms       String[] @db.Text
+  terms        String[] @db.Text
   // 생성 시각
-  create_time DateTime @default(now()) @db.Timestamptz()
+  created_time DateTime @default(now()) @db.Timestamptz()
   // 이전 데이터 처리
-  deleted     Boolean  @default(false)
-  User        User[]
+  deleted      Boolean  @default(false)
+  User         User[]
 
   @@map("terms_history")
-  @@schema("public")
 }
 
 // 사용자 계정 정보 q.한 사용자가 여러 oauth로 로그인 해도 되는 부분 ?
 model User {
   // 사용자 ID
-  id            String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  // oauth 가입 이용 사이트
-  provider      String?        @db.Text
+  id          String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  // oauth 가입 이용 사이트 // TODO enum type으로 변경 예정
+  provider    String         @db.Text
   // 이메일 & facebook은 전화번호 일 수도 있겠네. 그럼 provider_id가 나은가 ?
-  provider_id   String?        @db.Text
+  email       String         @db.Text
   // 비밀번호 → 암호화 필요
-  password      String?        @db.Text
-  // 휴대폰 번호
-  mobile_number String?        @db.Text
-  // 약관 동의 항목을 알아야 하는지 ? //todo 저장하지 않아도 되면 지우면 됨
-  term          TermsHistory   @relation(fields: [terms_id], references: [id])
-  terms_id      String         @db.Uuid
+  password    String?        @db.Text
+  // 약관 동의 항목을 알아야 하는지 ? // TODO 저장하지 않아도 되면 지우면 됨
+  term        TermsHistory   @relation(fields: [terms_id], references: [id])
+  terms_id    String         @db.Uuid
   // 가입 시간
-  joined_at     DateTime       @default(now()) @db.Timestamptz()
-  UserProfile   Profile?
-  FromUser      UserRelation[] @relation("fromUser")
-  ToUser        UserRelation[] @relation("toUser")
-  // Board          Board[]
-  LookBook      LookBook[]
-  Item          Item[]
-  Review        Review[]
-  Comment       Comment[]
-  Sender        Notification[] @relation("sender")
-  Receiver      Notification[] @relation("receiver")
+  joined_time DateTime       @default(now()) @db.Timestamptz()
+  UserProfile Profile?
+  FromUser    UserRelation[] @relation("fromUser")
+  ToUser      UserRelation[] @relation("toUser")
+  Lookbook    Lookbook[]
+  Item        Item[]
+  Review      Review[]
+  Comment     Comment[]
+  Sender      Notification[] @relation("sender")
+  Receiver    Notification[] @relation("receiver")
+  Like        Like[]
 
   @@map("user")
-  @@schema("public")
 }
 
 // 사용자 정보 (자주 사용하는 것들 위주 분리)
@@ -69,7 +63,7 @@ model Profile {
   // 사용자 별칭
   nick_name String   @db.Text
   // 사용자 프로필 이미지
-  img_url   String?  @db.Text
+  image_url String?  @db.Text
   // 사용자 신장
   height    String?  @db.Text
   // 사용자 체중
@@ -86,7 +80,6 @@ model Profile {
   mbti      String?  @db.Text
 
   @@map("user_profile")
-  @@schema("public")
 }
 
 // 운영자가 등록해야 함. styleTag를 어디어디 사용하는지 확인이 필요할 듯
@@ -97,12 +90,9 @@ model StyleTag {
   type String @db.Text
 
   @@map("style_tag")
-  @@schema("public")
 }
 
 model UserRelation {
-  // Row ID
-  id       String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   // 관계 타입 BLOCK | FOLLOW
   type     String @db.Text
   // 주체
@@ -112,20 +102,18 @@ model UserRelation {
   toUser   User   @relation("toUser", fields: [to], references: [id])
   to       String @db.Uuid
 
+  @@unique([type, from, to])
   @@map("user_relation")
-  @@schema("public")
 }
 
 model FashionTestQuestion {
   id       String              @unique @default(cuid())
   sequence Int                 @db.Integer
   text     String              @db.Text
-  image    String?             @db.Text
   answers  FashionTestAnswer[]
 
   @@unique([id, sequence])
-  @@map("question")
-  @@schema("fashion_test")
+  @@map("fashion_test_question")
 }
 
 model FashionTestAnswer {
@@ -136,16 +124,13 @@ model FashionTestAnswer {
   value      Json                @db.Json
 
   @@unique([questionId, sequence])
-  @@map("answer")
-  @@schema("fashion_test")
+  @@map("fashion_test_answer")
 }
 
 // 운영자가 등록한 보편적인 브랜드 정보
 model Brand {
   // Row ID
   id          String  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  // logo 이미지
-  logo_url    String  @db.Text
   // 브랜드 국문 이름
   name_ko     String? @db.Text
   // 브랜드 영문 이름
@@ -156,135 +141,116 @@ model Brand {
   Item Item[]
 
   @@map("brand")
-  @@schema("public")
 }
 
-model LookBook {
+model Like {
   // Row ID
-  id          String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  id       String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  // 유저 Id
+  user     User   @relation(fields: [user_id], references: [id])
+  user_id  String @db.Uuid
+  // 좋아요 누른 컨텐츠 종류 e.g. lookbook, comment..
+  category String @db.Text
+
+  lookbook    Lookbook? @relation(fields: [category_id], references: [id], map: "lookbook_fk")
+  comment     Comment?  @relation(fields: [category_id], references: [id], map: "comment_fk")
+  category_id String    @db.Uuid
+
+  @@map("like")
+}
+
+model Lookbook {
+  // Row ID
+  id           String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   // 작성자 Id
-  user        User      @relation(fields: [user_id], references: [id])
-  user_id     String    @db.Uuid
+  user         User     @relation(fields: [user_id], references: [id])
+  user_id      String   @db.Uuid
   // 제목
-  title       String    @db.Text
+  title        String   @db.Text
   // 소개
-  description String    @db.Text
+  description  String   @db.Text
   // 아이템
-  items       String[]  @db.Text
-  // 좋아요 개수
-  likes_num   Int       @default(0) @db.Integer
+  items        String[] @db.Text
   // 생성 시간
-  create_time DateTime  @default(now()) @db.Timestamptz()
-  // 수정 시간
-  update_time DateTime? @db.Timestamptz()
-  // 삭제 시간 -> 기록할 것인가 ? 아님 진짜 지워 ? 아님 flag ?
-  delete_time DateTime? @db.Timestamptz()
+  created_time DateTime @default(now()) @db.Timestamptz()
+  // TODO 스타일 태그 넣어야 될 것 같음
 
   Comment Comment[]
-  Images  Images[]
+  Like    Like[]
 
-  @@map("look_book")
-  @@schema("public")
+  @@map("lookbook")
 }
 
-model Images {
-  // Row ID
-  id          String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  // 해당 이미지 저장 항목 종류 ex) lookbook, comment, item
-  type        String    @db.Text
-  // 해당 이미지 저장 항목 ID
-  lookbook    LookBook? @relation(fields: [relation_id], references: [id], map: "look_book_fk")
-  item        Item?     @relation(fields: [relation_id], references: [id], map: "item_fk")
-  relation_id String    @db.Uuid
-
-  @@map("img")
-  @@schema("public")
-}
-
-// product ? item ?
 model Item {
   // Row ID
-  id          String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  id           String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   // 작성자 Id
-  user        User      @relation(fields: [user_id], references: [id])
-  user_id     String    @db.Uuid
+  user         User     @relation(fields: [user_id], references: [id])
+  user_id      String   @db.Uuid
   // brand Id
-  brand       Brand     @relation(fields: [brand_id], references: [id])
-  brand_id    String    @db.Uuid
+  brand        Brand    @relation(fields: [brand_id], references: [id])
+  brand_id     String   @db.Uuid
   // 제품명
-  name        String    @db.Text
+  name         String   @db.Text
   // 상품 분류 // TODO 상품 분류 카테고리 별도 테이블로 관리하는게 나을까 ?
-  category    String    @db.Text
+  category     String   @db.Text
   // 상품 url
-  store_url   String?   @db.Text
-  // 해당 상품 보유자 수
-  owner_cnt   Int       @default(1) @db.Integer
+  store_url    String?  @db.Text
   // 검증 상태 confirming -> confirmed || denied?  || 삭제 ?
-  status      String    @default("confirming") @db.Text
+  status       String   @default("confirming") @db.Text
   // 생성 시간
-  create_time DateTime  @default(now()) @db.Timestamptz()
-  // 수정 시간
-  update_time DateTime? @db.Timestamptz()
-  // 삭제 시간 -> 기록할 것인가 ? 아님 진짜 지워 ? 아님 flag ?
-  delete_time DateTime? @db.Timestamptz()
+  created_time DateTime @default(now()) @db.Timestamptz()
+  // TODO owner 집계를 신규 테이블로 분리할 지? 확인해보고 진행
 
   Review Review[]
-  Images Images[]
 
   @@map("item")
-  @@schema("public")
 }
 
 model Review {
   // Row ID
-  id          String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  id           String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   // 후기 상품 ID
-  item        Item      @relation(fields: [item_id], references: [id])
-  item_id     String    @db.Uuid
+  item         Item     @relation(fields: [item_id], references: [id])
+  item_id      String   @db.Uuid
   // 작성자 ID
-  user        User      @relation(fields: [user_id], references: [id])
-  user_id     String    @db.Uuid
+  user         User     @relation(fields: [user_id], references: [id])
+  user_id      String   @db.Uuid
   // 해당 상품의 size
-  size        String    @db.Text
+  size         String   @db.Text
   // 후기
-  description String    @db.Text()
+  description  String   @db.Text()
   // 생성 시간
-  create_time DateTime  @default(now()) @db.Timestamptz()
-  // 수정 시간
-  update_time DateTime? @db.Timestamptz()
-  // 삭제 시간 -> 기록할 것인가 ? 아님 진짜 지워 ? 아님 flag ?
-  delete_time DateTime? @db.Timestamptz()
+  created_time DateTime @default(now()) @db.Timestamptz()
 
   @@map("review")
-  @@schema("public")
 }
 
 model Comment {
   // Row ID
-  id          String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  id           String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   // 작성자 ID
-  user        User      @relation(fields: [user_id], references: [id])
-  user_id     String    @db.Uuid
+  user         User      @relation(fields: [user_id], references: [id])
+  user_id      String    @db.Uuid
   // 룩북 ID
-  lookbook    LookBook  @relation(fields: [lookbook_id], references: [id])
-  lookbook_id String    @db.Uuid
+  lookbook     Lookbook  @relation(fields: [lookbook_id], references: [id])
+  lookbook_id  String    @db.Uuid
   // 내용
-  description String    @db.Text
+  description  String    @db.Text
   // 댓글(0), 대댓글(1) 구별
-  depth       Int       @db.Integer
+  depth        Int       @db.Integer
   // 댓글과 대댓글 묶음 기준
-  group       Int       @db.Integer
-  // 좋아요 개수
-  likes_num   Int       @default(0) @db.Integer
+  group        Int       @db.Integer
   // 생성 시간
-  create_time DateTime  @default(now()) @db.Timestamptz()
+  created_time DateTime  @default(now()) @db.Timestamptz()
   // 수정 시간
-  update_time DateTime? @db.Timestamptz()
+  updated_time DateTime? @db.Timestamptz()
   // 삭제 시간 -> 기록할 것인가 ? 아님 진짜 지워 ? 아님 flag ?
-  delete_time DateTime? @db.Timestamptz()
+  deleted_time DateTime? @db.Timestamptz()
+
+  Like Like[]
 
   @@map("comment")
-  @@schema("public")
 }
 
 model Notification {
@@ -296,11 +262,11 @@ model Notification {
   // 송신자 ID
   receiver    User     @relation("receiver", fields: [receiver_id], references: [id])
   receiver_id String   @db.Uuid
-  // 알림 전송 분류
-  category    String   @db.Text
+  // 알림 전송 분류 e.g. like, follow, 20231225notice..
+  topic       String   @db.Text
   // 알림 내용
   content     String   @db.Text
-  // todo 생 url 보다는 별도 로직으로 빼는게 나을 것 같음 연관된 정보를 사용할 방법을 고려해보아야 함.
+  // TODO 생 url 보다는 별도 로직으로 빼는게 나을 것 같음 연관된 정보를 사용할 방법을 고려해보아야 함.
   // 해당 알림 연관 주소 => 알림 눌렀을 때 이동하기 위함.
   url         String   @db.Text
   // 전송 시간
@@ -309,7 +275,6 @@ model Notification {
   read_flag   Boolean  @db.Boolean
 
   @@map("notification")
-  @@schema("public")
 }
 
-// todo card, card-wallet, my-closet, collection... 정의 x
+// TODO card, card-wallet, my-closet, collection, admin... 정의 x
