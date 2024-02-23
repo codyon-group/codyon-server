@@ -13,7 +13,7 @@ async function bootstrap(): Promise<void> {
       exceptionFactory: (errs): ErrorHandler => {
         // stopAtFirstError 옵션으로 인해 errs[0]에만 error 사항 존재
         const err = errs[0];
-        const errOption = Object.keys(err.constraints)[0];
+        const errOption = err.constraints;
         const { code, detailCode, msg } = setValidatorError(errOption, err.property);
 
         return new ErrorHandler(code, detailCode, msg);
