@@ -126,7 +126,7 @@ export class UserService {
     const isDuplicateEmail = await this.checkDuplicateEmail(data.email);
 
     if (isDuplicateEmail) {
-      throw new ErrorHandler(ErrorCode.INVALID_ARGUMENT, 'email', '이미 가입된 이메일입니다.');
+      throw new ErrorHandler(ErrorCode.DUPLICATED, 'email', '이미 가입된 이메일입니다.');
     }
 
     // 비밀번호 일치여부 확인
@@ -142,7 +142,7 @@ export class UserService {
     const isDuplicateNickName = await this.checkDuplicateNickName(data.nick_name);
 
     if (isDuplicateNickName) {
-      throw new ErrorHandler(ErrorCode.INVALID_ARGUMENT, 'nick_name', '사용중인 닉네임입니다.');
+      throw new ErrorHandler(ErrorCode.DUPLICATED, 'nick_name', '사용중인 닉네임입니다.');
     }
 
     // 비밀번호 암호화
@@ -168,12 +168,12 @@ export class UserService {
 
   async checkOauthSession(
     sessionId: string,
-  ): Promise<{ email: string; provider: string; prfile_img?: string }> {
+  ): Promise<{ email: string; provider: string; profile_img?: string }> {
     const key = `oauth-sign-up:${sessionId}`;
     const values = (await this.cacheService.hGetAll(key)) as {
       email: string;
       provider: string;
-      prfile_img?: string;
+      profile_img?: string;
     };
 
     return values;
@@ -196,6 +196,7 @@ export class UserService {
           data: {
             user_id: userId,
             nick_name: data.nickName,
+            img_url: data.img_url,
             height: data.height,
             weight: data.weight,
             feet_size: data.feetSize,
@@ -227,14 +228,14 @@ export class UserService {
     const isDuplicateNickName = await this.checkDuplicateNickName(data.nick_name);
 
     if (isDuplicateNickName) {
-      throw new ErrorHandler(ErrorCode.INVALID_ARGUMENT, 'nick_name', '사용중인 닉네임입니다.');
+      throw new ErrorHandler(ErrorCode.DUPLICATED, 'nick_name', '사용중인 닉네임입니다.');
     }
 
     // 회원가입 진행
     const userProfile: CreateOauthUser = {
       email: oauthSession.email,
       provider: oauthSession.provider,
-      img_url: oauthSession.prfile_img,
+      img_url: oauthSession.profile_img,
       nickName: data.nick_name,
       height: data.height,
       weight: data.weight,

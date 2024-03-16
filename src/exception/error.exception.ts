@@ -95,6 +95,11 @@ export class ErrorHandler extends HttpException {
         super(msg, HttpStatus.FORBIDDEN);
         this.errorDetailCode = ErrorDetailCode.FORBIDDEN;
         break;
+      case ErrorCode.DUPLICATED:
+        msg = message || ErrorMsg.DUPLICATED;
+        super(msg, HttpStatus.CONFLICT);
+        this.errorDetailCode = ErrorDetailCode.DUPLICATED;
+        break;
       default:
         super(ErrorMsg.UNHANDLED, HttpStatus.INTERNAL_SERVER_ERROR);
         break;
