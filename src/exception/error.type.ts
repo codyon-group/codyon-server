@@ -1,6 +1,7 @@
 /* eslint-disable */
 export enum ErrorCode {
   BAD_REQUEST = 'BAD_REQUEST_ERROR',
+  DUPLICATED = 'DUPLICATED_ERROR',
   FORBIDDEN = 'FORBIDDEN_ERROR',
   INTERNAL_SERVER_ERROR = 'INTERNAL_SERVER_ERROR',
   INVALID_ARGUMENT = 'INVALID_ARGUMENT_ERROR',
@@ -23,6 +24,7 @@ export enum ErrorDetailCode {
 
 export enum ErrorMsg {
   BAD_REQUEST = '잘못된 요청입니다. 다시 한번 확인해 주세요.',
+  DUPLICATED = '중복된 정보입니다.',
   FORBIDDEN = '올바르지 않은 접근입니다.',
   INVALID = '정보가 올바르지 않습니다. 다시 한번 확인해 주세요.',
   MISSING = '필수 정보가 기입되지 않았습니다. 다시 한번 확인해 주세요.',

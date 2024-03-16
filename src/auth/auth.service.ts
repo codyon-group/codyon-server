@@ -11,6 +11,7 @@ import { ErrorHandler } from '../exception/error.exception';
 import { ErrorCode, ErrorDetailCode } from '../exception/error.type';
 import {
   AccessTokenInfo,
+  KakaoLoginToken,
   OauthUserInfo,
   RefreshTokenInfo,
   SignUpInfo,
@@ -214,7 +215,7 @@ export class AuthService {
   }
 
   async reqOauthKaKaoLogin(): Promise<string> {
-    const url = new URL(this.configService.get<string>('REQ_KAKAO_OAUTH_URL'));
+    const url = new URL(this.configService.get<string>('KAKAO_OAUTH_URL'));
 
     url.searchParams.append('client_id', this.CLIENT_ID);
     url.searchParams.append('response_type', 'code');
@@ -224,9 +225,9 @@ export class AuthService {
     return url.toString();
   }
 
-  async kakaoLoginToken(code: string): Promise<any> {
+  async kakaoLoginToken(code: string): Promise<KakaoLoginToken> {
     try {
-      const { data } = await axios.post('https://kauth.kakao.com/oauth/token', null, {
+      const { data } = await axios.post(this.configService.get('KAKAO_OAUTH_TOKEN_URL'), null, {
         params: {
           grant_type: 'authorization_code',
           client_id: this.CLIENT_ID,
@@ -245,7 +246,7 @@ export class AuthService {
 
   async kakaoGetUserInfo(accessToken: string): Promise<OauthUserInfo> {
     try {
-      const { data } = await axios.get('https://kapi.kakao.com/v2/user/me', {
+      const { data } = await axios.get(this.configService.get('KAKAO_USERINFO_URL'), {
         headers: {
           Authorization: `Bearer ${accessToken}`,
         },

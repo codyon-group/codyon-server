@@ -52,7 +52,7 @@ export class CacheService {
 
   async del(key: string): Promise<void> {
     try {
-      await this.redisClient.get(key);
+      await this.redisClient.del(key);
     } catch (err) {
       console.error(`del: ${err.message}`);
       throw new ErrorHandler(ErrorCode.INTERNAL_SERVER_ERROR);
@@ -96,7 +96,7 @@ export class CacheService {
         result[field] = JSON.parse(values[field]);
       }
 
-      return values;
+      return result;
     } catch (err) {
       console.error(`hGetAll: ${err.message}`);
       throw new ErrorHandler(ErrorCode.INTERNAL_SERVER_ERROR);
