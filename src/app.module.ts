@@ -12,6 +12,7 @@ import { MailModule } from './mail/mail.module';
 import { MyPageModule } from './my-page/my-page.module';
 import { S3Module } from './s3/s3.module';
 import { UserModule } from './user/user.module';
+import { RelationModule } from './relation/relation.module';
 
 @Module({
   imports: [
@@ -26,6 +27,7 @@ import { UserModule } from './user/user.module';
     CommonModule,
     MyPageModule,
     S3Module,
+    RelationModule,
   ],
   controllers: [AppController],
   providers: [AppService],

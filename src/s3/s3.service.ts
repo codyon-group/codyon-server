@@ -42,9 +42,11 @@ export class S3Service {
     }
   }
 
-  getObjectKey(type: string, key: string): string {
+  getObjectKey(type: string, key: string): string | null {
     switch (type) {
       case PROFILE:
+        // 프로필 이미지 등록하지 않은 경우
+        if (key == null) return null;
         // oauth login시 등록한 profile인 경우
         if (key.startsWith('http')) return key;
         return `${this.cdn}${this.profileFolder}${key}`;
