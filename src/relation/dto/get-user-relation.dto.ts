@@ -1,8 +1,7 @@
 import { IsNotEmpty, IsNumberString, IsOptional, IsString } from 'class-validator';
 
-// todo util or common으로 빼기
 class Pagination {
-  @IsString()
+  @IsNumberString()
   @IsOptional()
   cursor?: string;
 

@@ -1,10 +1,15 @@
-import { Controller, Get, Query, Req, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Post, Query, Req, UseGuards } from '@nestjs/common';
 import { AuthGuard } from '../auth/auth.guard';
 import { RelationService } from './relation.service';
 import { UserReq } from '../auth/type';
 import { Pagination, ResUserList } from './type';
 import { RelationByStatus } from './dto/get-user-relation.dto';
 import { PROFILE, S3Service } from '../s3/s3.service';
+import { Follow } from './dto/follow-user.dto';
+import { UnFollow } from './dto/unfollow-user.dto';
+import { DelFollower } from './dto/del-follower.dto';
+import { Bolck } from './dto/block-user.dto';
+import { UnBolck } from './dto/unblock-user.dto';
 
 @Controller('api/relation')
 @UseGuards(AuthGuard)
@@ -51,5 +56,45 @@ export class RelationController {
     });
 
     return { pagination, data: relationList };
+  }
+
+  @Post('follow')
+  async follow(@Req() req: UserReq, @Body() data: Follow): Promise<{ success: boolean }> {
+    await this.relationService.follow(req.user.id, data.user_id);
+
+    return { success: true };
+  }
+
+  @Delete('unfollow')
+  async unFollow(@Req() req: UserReq, @Query() data: UnFollow): Promise<{ success: boolean }> {
+    await this.relationService.unFollow(req.user.id, data.user_id);
+
+    return { success: true };
+  }
+
+  // 팔로워 삭제 -> 상대 유저 팔로잉 목록에서 삭제
+  @Delete('follower')
+  async deleteFollwer(
+    @Req() req: UserReq,
+    @Query() data: DelFollower,
+  ): Promise<{ success: boolean }> {
+    await this.relationService.deleteFollower(data.user_id, req.user.id);
+
+    return { success: true };
+  }
+
+  // 차단  => 양쪽 follow 취소
+  @Post('block')
+  async blockUser(@Req() req: UserReq, @Body() data: Bolck): Promise<{ success: boolean }> {
+    await this.relationService.block(req.user.id, data.user_id);
+
+    return { success: true };
+  }
+
+  @Delete('unblock')
+  async unBlock(@Req() req: UserReq, @Query() data: UnBolck): Promise<{ success: boolean }> {
+    await this.relationService.unBlock(req.user.id, data.user_id);
+
+    return { success: true };
   }
 }
