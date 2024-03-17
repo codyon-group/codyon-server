@@ -21,3 +21,7 @@ export interface MyPage
     UserRelationCnt {
   item_cnt: number;
 }
+
+export class ChangeUserProfile extends UserProfile {
+  igm_url?: string;
+}

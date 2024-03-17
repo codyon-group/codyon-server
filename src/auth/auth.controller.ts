@@ -1,8 +1,12 @@
-import { Body, Controller, Get, Post, Query, Redirect } from '@nestjs/common';
+import { Body, Controller, Get, Post, Query, Redirect, Req, UseGuards } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { SignIn } from './dto/login.dto';
-import { AccessTokenInfo, SignUpInfo, UserTokenInfo } from './type';
+import { AccessTokenInfo, SignUpInfo, UserReq, UserTokenInfo } from './type';
 import { IssueToken } from './dto/issue-token.dto';
+import { AuthGuard } from './auth.guard';
+import { ErrorHandler } from '../exception/error.exception';
+import { ErrorCode } from '../exception/error.type';
+import { PasswordInfo } from './dto/change-password.dto';
 
 @Controller('api')
 export class AuthController {
@@ -43,5 +47,32 @@ export class AuthController {
     const result = await this.authService.oauthKaKaoLogin(code);
 
     return { data: result };
+  }
+
+  @UseGuards(AuthGuard)
+  @Post('/change/password')
+  async changePassword(
+    @Req() req: UserReq,
+    @Body() passwordInfo: PasswordInfo,
+  ): Promise<{ success: boolean }> {
+    const { password, confirm_password: confirmPassword } = passwordInfo;
+
+    if (password !== confirmPassword) {
+      throw new ErrorHandler(
+        ErrorCode.INVALID_ARGUMENT,
+        'password',
+        '비밀번호가 일치하지 않습니다.',
+      );
+    }
+
+    // 비밀번호 암호화
+    const hashedPassword = await this.authService.hashPassword(password);
+
+    await this.authService.changePassword(req.user.id, hashedPassword);
+
+    // 비밀번호 변경 시 재로그인 해야 함
+    await this.authService.delRefreshToken(req.user.id);
+
+    return { success: true };
   }
 }

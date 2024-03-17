@@ -64,6 +64,8 @@ model Profile {
   nick_name      String   @unique @db.Text
   // 사용자 프로필 이미지
   img_url        String?  @db.Text
+  // 사용자 소개글
+  description    String?  @db.Text
   // 사용자 신장
   height         String   @db.Text
   // 사용자 체중Ø

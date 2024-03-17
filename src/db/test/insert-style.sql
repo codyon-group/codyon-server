@@ -1,5 +1,5 @@
 INSERT INTO
-    style (id, type)
+    style_tag (id, type)
 VALUES
     ('b806902f-b13f-58c9-bdbd-e600fdef5325', '미니멀'),
     ('9c2a7926-0789-5749-8d74-3f39ab0c949c', '모던'),

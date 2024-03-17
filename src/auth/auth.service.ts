@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JsonWebTokenError, JwtService, TokenExpiredError } from '@nestjs/jwt';
-import { verify } from 'argon2';
+import { hash, verify } from 'argon2';
 import axios from 'axios';
 import dayjs from 'dayjs';
 import { v4 as uuidV4 } from 'uuid';
@@ -370,6 +370,44 @@ export class AuthService {
       }
 
       return await this.createToken(signedUserInfo.id);
+    }
+  }
+
+  async hashPassword(password: string): Promise<string> {
+    try {
+      const passwordHash = await hash(password);
+
+      return passwordHash;
+    } catch (err) {
+      console.error(`hashPassword: ${err.message}`);
+      throw new ErrorHandler(ErrorCode.INTERNAL_SERVER_ERROR);
+    }
+  }
+
+  async changePassword(userId: string, password: string): Promise<void> {
+    try {
+      await this.dbService.user.update({
+        data: {
+          password,
+        },
+        where: {
+          id: userId,
+        },
+      });
+    } catch (err) {
+      console.error(`changePassword: ${err.message}`);
+      throw new ErrorHandler(ErrorCode.INTERNAL_SERVER_ERROR);
+    }
+  }
+
+  async delRefreshToken(userId: string): Promise<void> {
+    try {
+      const key = REFRESH_TOKEN + userId;
+
+      await this.cacheService.del(key);
+    } catch (err) {
+      console.error(`delRefreshToken: ${err.message}`);
+      throw new ErrorHandler(ErrorCode.INTERNAL_SERVER_ERROR);
     }
   }
 }

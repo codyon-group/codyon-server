@@ -9,8 +9,9 @@ import { DbModule } from './db/db.module';
 import { FilterModule } from './filter/filter.module';
 import { LikeModule } from './like/like.module';
 import { MailModule } from './mail/mail.module';
-import { UserModule } from './user/user.module';
 import { MyPageModule } from './my-page/my-page.module';
+import { S3Module } from './s3/s3.module';
+import { UserModule } from './user/user.module';
 
 @Module({
   imports: [
@@ -24,6 +25,7 @@ import { MyPageModule } from './my-page/my-page.module';
     FilterModule,
     CommonModule,
     MyPageModule,
+    S3Module,
   ],
   controllers: [AppController],
   providers: [AppService],

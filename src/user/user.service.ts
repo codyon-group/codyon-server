@@ -62,6 +62,21 @@ export class UserService {
     }
   }
 
+  async checkFavoriteStyle(styleIds: string[]): Promise<boolean> {
+    try {
+      const styleCnt = await this.dbService.style.count({
+        where: {
+          id: { in: styleIds },
+        },
+      });
+
+      return styleCnt === styleIds.length;
+    } catch (err) {
+      console.error(`checkFavoriteStyle: ${err.message}`);
+      throw new ErrorHandler(ErrorCode.INTERNAL_SERVER_ERROR);
+    }
+  }
+
   async checkSession(sessionId: string, email: string): Promise<boolean> {
     const key = `auth-mail:${sessionId}`;
     const values = (await this.cacheService.hMGet(key, ['email', 'status'])) as {
@@ -145,6 +160,13 @@ export class UserService {
 
     if (isDuplicateNickName) {
       throw new ErrorHandler(ErrorCode.DUPLICATED, 'nick_name', '사용중인 닉네임입니다.');
+    }
+
+    // favorite_style 확인 -> array type 원소 fk check 안됨
+    const isValidStyleList = await this.checkFavoriteStyle(data.styles);
+
+    if (!isValidStyleList) {
+      throw new ErrorHandler(ErrorCode.NOT_FOUND, 'style_tag');
     }
 
     // 비밀번호 암호화
@@ -231,6 +253,13 @@ export class UserService {
 
     if (isDuplicateNickName) {
       throw new ErrorHandler(ErrorCode.DUPLICATED, 'nick_name', '사용중인 닉네임입니다.');
+    }
+
+    // favorite_style 확인 -> array type 원소 fk check 안됨
+    const isValidStyleList = await this.checkFavoriteStyle(data.styles);
+
+    if (!isValidStyleList) {
+      throw new ErrorHandler(ErrorCode.NOT_FOUND, 'style_tag');
     }
 
     // 회원가입 진행

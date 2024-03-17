@@ -1,12 +1,30 @@
-import { Controller, Get, Req, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Put,
+  Req,
+  UploadedFile,
+  UseGuards,
+  UseInterceptors,
+} from '@nestjs/common';
+import { FileInterceptor } from '@nestjs/platform-express';
 import { AuthGuard } from '../auth/auth.guard';
 import { UserReq } from '../auth/type';
-import { MyPage, UserProfile } from './type';
+import { ErrorHandler } from '../exception/error.exception';
+import { ErrorCode } from '../exception/error.type';
+import { ChangeProfile } from './dto/change-profile.dto';
 import { MyPageService } from './my-page.service';
+import { MyPage, UserProfile } from './type';
+import { PROFILE, S3Service } from '../s3/s3.service';
+import { FileValidationPipe } from '../s3/file.validation';
 
 @Controller('api/my-page')
 export class MyPageController {
-  constructor(private myPageService: MyPageService) {}
+  constructor(
+    private myPageService: MyPageService,
+    private s3Service: S3Service,
+  ) {}
 
   // 기본 프로필 조회
   @UseGuards(AuthGuard)
@@ -19,7 +37,7 @@ export class MyPageController {
 
     const userInfo = {
       nick_name: userProfile.nick_name,
-      img_url: userProfile.img_url,
+      img_url: this.s3Service.getObjectKey(PROFILE, userProfile.img_url),
       height: userProfile.height,
       weight: userProfile.weight,
       feet_size: userProfile.feet_size,
@@ -39,5 +57,44 @@ export class MyPageController {
     const userProfile = await this.myPageService.getUserProfile(req.user.id);
 
     return userProfile;
+  }
+
+  // 프로필 변경
+  @UseGuards(AuthGuard)
+  @Put('change/profile')
+  @UseInterceptors(FileInterceptor('profile_img'))
+  async changeProfile(
+    @Req() req: UserReq,
+    @Body() data: ChangeProfile,
+    @UploadedFile(FileValidationPipe) profileImg?: Express.Multer.File,
+  ): Promise<{ success: boolean }> {
+    // 변경된 사항 없이 전송한 경우 오류 x
+    if (Object.keys(data).length === 0 && profileImg == null) {
+      return { success: true };
+    }
+
+    if (data?.nick_name != null) {
+      // 닉네임 중복인지 확인
+      const isDuplicateNickName = await this.myPageService.checkDuplicateNickName(
+        req.user.id,
+        data.nick_name,
+      );
+
+      if (isDuplicateNickName) {
+        throw new ErrorHandler(ErrorCode.DUPLICATED, 'nick_name', '사용중인 닉네임입니다.');
+      }
+    }
+
+    if (data?.favorite_style != null) {
+      // favorite_style 확인 -> array type 원소 fk check 안됨
+      const isValidStyleList = await this.myPageService.checkFavoriteStyle(data.favorite_style);
+      if (!isValidStyleList) {
+        throw new ErrorHandler(ErrorCode.NOT_FOUND, 'favorite_style');
+      }
+    }
+
+    await this.myPageService.changeProfile(req.user.id, data, profileImg);
+
+    return { success: true };
   }
 }

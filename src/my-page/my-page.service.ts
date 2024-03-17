@@ -2,11 +2,17 @@ import { Injectable } from '@nestjs/common';
 import { DbService } from '../db/db.service';
 import { ErrorHandler } from '../exception/error.exception';
 import { ErrorCode } from '../exception/error.type';
-import { UserProfile, UserRelationCnt } from './type';
+import { ChangeUserProfile, UserProfile, UserRelationCnt } from './type';
+import { ChangeProfile } from './dto/change-profile.dto';
+import { v4 as uuidV4 } from 'uuid';
+import { PROFILE, S3Service } from '../s3/s3.service';
 
 @Injectable()
 export class MyPageService {
-  constructor(private dbService: DbService) {}
+  constructor(
+    private dbService: DbService,
+    private s3Service: S3Service,
+  ) {}
 
   async getUserProfile(userId: string): Promise<UserProfile | null> {
     try {
@@ -79,5 +85,70 @@ export class MyPageService {
       console.error(`getEnrolledItemCnt: ${err.message}`);
       throw new ErrorHandler(ErrorCode.INTERNAL_SERVER_ERROR);
     }
+  }
+
+  async checkDuplicateNickName(userId: string, nickName: string): Promise<boolean> {
+    try {
+      const isDuplicate = await this.dbService.profile.count({
+        where: {
+          nick_name: nickName,
+          NOT: {
+            user_id: userId,
+          },
+        },
+      });
+
+      return isDuplicate > 0;
+    } catch (err) {
+      console.error(`checkDuplicateNickName: ${err.message}`);
+      throw new ErrorHandler(ErrorCode.INTERNAL_SERVER_ERROR);
+    }
+  }
+
+  async checkFavoriteStyle(styleIds: string[]): Promise<boolean> {
+    try {
+      const styleCnt = await this.dbService.style.count({
+        where: {
+          id: { in: styleIds },
+        },
+      });
+
+      return styleCnt === styleIds.length;
+    } catch (err) {
+      console.error(`checkFavoriteStyle: ${err.message}`);
+      throw new ErrorHandler(ErrorCode.INTERNAL_SERVER_ERROR);
+    }
+  }
+
+  async changeUserProfile(userId: string, data: ChangeUserProfile): Promise<void> {
+    try {
+      await this.dbService.profile.update({
+        data,
+        where: {
+          user_id: userId,
+        },
+      });
+    } catch (err) {
+      console.error(`changeUserProfile: ${err.message}`);
+      throw new ErrorHandler(ErrorCode.INTERNAL_SERVER_ERROR);
+    }
+  }
+
+  async changeProfile(
+    userId: string,
+    data: ChangeProfile,
+    profileImg?: Express.Multer.File,
+  ): Promise<void> {
+    const profileData = { ...data } as ChangeUserProfile;
+
+    if (profileImg != null) {
+      const key = uuidV4();
+      const imgKey = this.s3Service.setObjectKey(PROFILE, key);
+
+      await this.s3Service.uploadImg(imgKey, profileImg);
+      profileData['img_url'] = key;
+    }
+
+    await this.changeUserProfile(userId, profileData);
   }
 }

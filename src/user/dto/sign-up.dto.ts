@@ -1,4 +1,17 @@
-import { IsEmail, IsNotEmpty, IsOptional, IsString, IsUUID, Matches } from 'class-validator';
+import {
+  IsEmail,
+  IsEnum,
+  IsNotEmpty,
+  IsOptional,
+  IsString,
+  IsUUID,
+  Matches,
+} from 'class-validator';
+
+enum Gender {
+  MALE = 'male',
+  FEMALE = 'female',
+}
 
 export class SignUp {
   // email 인증 세션 아이디
@@ -35,6 +48,7 @@ export class SignUp {
 
   @IsString()
   @IsNotEmpty()
+  @IsEnum(Gender)
   gender: string;
 
   @IsString()
