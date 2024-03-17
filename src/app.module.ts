@@ -10,6 +10,7 @@ import { FilterModule } from './filter/filter.module';
 import { LikeModule } from './like/like.module';
 import { MailModule } from './mail/mail.module';
 import { UserModule } from './user/user.module';
+import { MyPageModule } from './my-page/my-page.module';
 
 @Module({
   imports: [
@@ -22,6 +23,7 @@ import { UserModule } from './user/user.module';
     LikeModule,
     FilterModule,
     CommonModule,
+    MyPageModule,
   ],
   controllers: [AppController],
   providers: [AppService],
