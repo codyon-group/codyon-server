@@ -1,14 +1,28 @@
 import { Injectable, PipeTransform } from '@nestjs/common';
 import { ErrorHandler } from '../exception/error.exception';
-import { ErrorCode } from '../exception/error.type';
+import { ErrorCode, ErrorDetailCode, ErrorMsg } from '../exception/error.type';
 
 const MIME_TYPES = new Set(['image/jpg', 'image/jpeg', 'image/png', 'image/webp', 'image/gif']);
 const FILE_SIZE = 5 * 1024 ** 2;
 @Injectable()
 export class FileValidationPipe implements PipeTransform {
+  private optional: boolean;
+
+  constructor(isOptional: boolean = false) {
+    this.optional = isOptional;
+  }
+
   transform(file?: Express.Multer.File): Express.Multer.File {
-    if (file == null) {
+    if (this.optional && file == null) {
       return;
+    }
+
+    if (file == null) {
+      throw new ErrorHandler(
+        ErrorCode.INVALID_ARGUMENT,
+        { file: ErrorDetailCode.MISSING },
+        ErrorMsg.MISSING,
+      );
     }
 
     if (!MIME_TYPES.has(file.mimetype)) {
