@@ -35,6 +35,7 @@ export class S3Service {
     return this.s3Client;
   }
 
+  // for s3 update & delete
   setObjectKey(type: string, key: string): string {
     switch (type) {
       case PROFILE:
@@ -47,6 +48,7 @@ export class S3Service {
     }
   }
 
+  // for cdn get
   getObjectKey(type: string, key: string): string | null {
     switch (type) {
       case PROFILE:
@@ -55,6 +57,8 @@ export class S3Service {
         // oauth login시 등록한 profile인 경우
         if (key.startsWith('http')) return key;
         return `${this.cdn}${this.profileFolder}${key}`;
+      case CARD:
+        return `${this.cdn}${this.cardFolder}${key}`;
       default:
         console.error(`getObjectKey: not defined object type`);
         throw new ErrorHandler(ErrorCode.INTERNAL_SERVER_ERROR);
