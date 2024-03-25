@@ -16,12 +16,49 @@ import { CheckFashionMbti } from '../interceptor/check-fashion-mbti.interceptor'
 import { FileValidationPipe } from '../s3/file.validation';
 import { CardService } from './card.service';
 import { DeleteCard } from './dto/delete-card.dto';
+import { CardUserInfo, Pagination, ResCardHistory, ResDetailCardInfo } from './type';
 import { GetCard } from './dto/get-card.dto';
-import { CardUserInfo, ResDetailCardInfo } from './type';
+import { CardPagination } from './dto/get-card-history.dto';
+import { CARD, S3Service } from '../s3/s3.service';
 
 @Controller('api/card')
 export class CardController {
-  constructor(private cardService: CardService) {}
+  constructor(
+    private cardService: CardService,
+    private s3Service: S3Service,
+  ) {}
+
+  // my-page에서 조회 가능
+  @UseGuards(AuthGuard)
+  @Get('/history')
+  async getFashionCardHistory(
+    @Req() req: UserReq,
+    @Query() data: CardPagination,
+  ): Promise<{ pagination: Pagination; data: Array<ResCardHistory> }> {
+    const result = await this.cardService.getCardHistory(req.user.id, data.cursor, data.limit);
+
+    if (!result.length) {
+      return {
+        pagination: { cursor: null, is_end: true },
+        data: [],
+      };
+    }
+
+    const pagination = {
+      cursor: result[result.length - 1].id.toString(),
+      is_end: result.length < Number(data.limit || 100),
+    };
+
+    const cardHistory = result.map((x) => {
+      return {
+        id: x.id,
+        card_img: this.s3Service.setObjectKey(CARD, x.img_key),
+        created_time: x.created_time,
+      };
+    });
+
+    return { pagination, data: cardHistory };
+  }
 
   // 카드 상세 조회
   @Get('detail')

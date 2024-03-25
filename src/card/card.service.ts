@@ -4,7 +4,7 @@ import { DbService } from '../db/db.service';
 import { ErrorHandler } from '../exception/error.exception';
 import { ErrorCode } from '../exception/error.type';
 import { CARD, PROFILE, S3Service } from '../s3/s3.service';
-import { CardInfo, CardUserInfo, DetailCardInfo, ResDetailCardInfo } from './type';
+import { CardHistory, CardInfo, CardUserInfo, DetailCardInfo, ResDetailCardInfo } from './type';
 
 @Injectable()
 export class CardService {
@@ -30,6 +30,49 @@ export class CardService {
     };
 
     return result;
+  }
+
+  async getCardHistory(
+    userId: string,
+    cursor?: string,
+    limit = '100',
+  ): Promise<Array<CardHistory>> {
+    try {
+      let cursorData = null;
+
+      if (cursor != null) {
+        cursorData = {
+          cursor: {
+            id: cursor,
+          },
+          skip: 1,
+        };
+      }
+
+      const result = await this.dbService.fashionCard.findMany({
+        select: {
+          id: true,
+          img_key: true,
+          created_time: true,
+        },
+        where: {
+          user_id: userId,
+        },
+        ...cursorData,
+        take: Number(limit),
+        orderBy: [
+          {
+            created_time: 'desc',
+          },
+          { id: 'asc' },
+        ],
+      });
+
+      return result;
+    } catch (err) {
+      console.error(`getCardHistory: ${err.message}`);
+      throw new ErrorHandler(ErrorCode.INTERNAL_SERVER_ERROR);
+    }
   }
 
   async getFashionCard(cardId: string): Promise<ResDetailCardInfo> {

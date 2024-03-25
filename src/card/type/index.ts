@@ -43,3 +43,20 @@ export class CardInfo {
   user_id: string;
   img_key: string;
 }
+
+export class CardHistory {
+  id: string;
+  img_key: string;
+  created_time: Date;
+}
+
+export class Pagination {
+  cursor: string;
+  is_end: boolean;
+}
+
+export class ResCardHistory {
+  id: string;
+  card_img: string;
+  created_time: Date;
+}
