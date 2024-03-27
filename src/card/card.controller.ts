@@ -14,12 +14,13 @@ import { AuthGuard } from '../auth/auth.guard';
 import { UserReq } from '../auth/type';
 import { CheckFashionMbti } from '../interceptor/check-fashion-mbti.interceptor';
 import { FileValidationPipe } from '../s3/file.validation';
+import { CARD, S3Service } from '../s3/s3.service';
 import { CardService } from './card.service';
 import { DeleteCard } from './dto/delete-card.dto';
-import { CardUserInfo, Pagination, ResCardHistory, ResDetailCardInfo } from './type';
-import { GetCard } from './dto/get-card.dto';
 import { CardPagination } from './dto/get-card-history.dto';
-import { CARD, S3Service } from '../s3/s3.service';
+import { CardList } from './dto/get-card-list.dto';
+import { GetCard } from './dto/get-card.dto';
+import { CardUserInfo, Pagination, ResCard, ResDetailCardInfo } from './type';
 
 @Controller('api/card')
 export class CardController {
@@ -28,13 +29,43 @@ export class CardController {
     private s3Service: S3Service,
   ) {}
 
+  // 필터 및 검색어 사용
+  @Get()
+  async getFashionCardList(
+    @Query() data: CardList,
+  ): Promise<{ pagination: Pagination; data: Array<ResCard> }> {
+    const result = await this.cardService.getFashionCardList(data);
+
+    if (!result.length) {
+      return {
+        pagination: { cursor: null, is_end: true },
+        data: [],
+      };
+    }
+
+    const pagination = {
+      cursor: result[result.length - 1].id.toString(),
+      is_end: result.length < Number(data.limit || 100),
+    };
+
+    const cardList = result.map((x) => {
+      return {
+        id: x.id,
+        card_img: this.s3Service.getObjectKey(CARD, x.img_key),
+        created_time: x.created_time,
+      };
+    });
+
+    return { pagination, data: cardList };
+  }
+
   // my-page에서 조회 가능
   @UseGuards(AuthGuard)
-  @Get('/history')
+  @Get('history')
   async getFashionCardHistory(
     @Req() req: UserReq,
     @Query() data: CardPagination,
-  ): Promise<{ pagination: Pagination; data: Array<ResCardHistory> }> {
+  ): Promise<{ pagination: Pagination; data: Array<ResCard> }> {
     const result = await this.cardService.getCardHistory(req.user.id, data.cursor, data.limit);
 
     if (!result.length) {

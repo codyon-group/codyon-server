@@ -4,7 +4,8 @@ import { DbService } from '../db/db.service';
 import { ErrorHandler } from '../exception/error.exception';
 import { ErrorCode } from '../exception/error.type';
 import { CARD, PROFILE, S3Service } from '../s3/s3.service';
-import { CardHistory, CardInfo, CardUserInfo, DetailCardInfo, ResDetailCardInfo } from './type';
+import { CardList } from './dto/get-card-list.dto';
+import { Card, CardInfo, CardUserInfo, DetailCardInfo, ResDetailCardInfo } from './type';
 
 @Injectable()
 export class CardService {
@@ -32,11 +33,78 @@ export class CardService {
     return result;
   }
 
-  async getCardHistory(
-    userId: string,
-    cursor?: string,
-    limit = '100',
-  ): Promise<Array<CardHistory>> {
+  // todo 조회순, 인기순 고려해주기
+  async getFashionCardList(data: CardList): Promise<Array<Card>> {
+    try {
+      let cursorData = null;
+
+      if (data.cursor != null) {
+        cursorData = {
+          cursor: {
+            id: data.cursor,
+          },
+          skip: 1,
+        };
+      }
+
+      const bodySize = {};
+
+      if (data.height) {
+        console.log(data.height);
+        bodySize['height'] = {
+          gte: data.height[0],
+          lte: data.height[1],
+        };
+      }
+
+      if (data.weight) {
+        bodySize['weight'] = {
+          gte: data.weight[0],
+          lte: data.weight[1],
+        };
+      }
+
+      if (data.feet_size) {
+        bodySize['feet_size'] = {
+          gte: data.weight[0],
+          lte: data.weight[1],
+        };
+      }
+
+      const result = await this.dbService.fashionCard.findMany({
+        select: {
+          id: true,
+          img_key: true,
+          created_time: true,
+        },
+        where: {
+          user: {
+            UserProfile: {
+              gender: data.gender,
+              mbti: data.mbti,
+              nick_name: { contains: data.search },
+              ...bodySize,
+            },
+          },
+        },
+        ...cursorData,
+        take: Number(data.limit || 100),
+        orderBy: [
+          {
+            created_time: 'desc',
+          },
+          { id: 'asc' },
+        ],
+      });
+
+      return result;
+    } catch (err) {
+      console.error(`getFashionCardList: ${err.message}`);
+      throw new ErrorHandler(ErrorCode.INTERNAL_SERVER_ERROR);
+    }
+  }
+
+  async getCardHistory(userId: string, cursor?: string, limit = '100'): Promise<Array<Card>> {
     try {
       let cursorData = null;
 
