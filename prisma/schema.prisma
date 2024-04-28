@@ -145,18 +145,12 @@ model Brand {
 }
 
 model Like {
-  // // Row ID
-  // id       String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   // 유저 Id
-  user     User   @relation(fields: [user_id], references: [id])
-  user_id  String @db.Uuid
+  user        User   @relation(fields: [user_id], references: [id])
+  user_id     String @db.Uuid
   // 좋아요 누른 컨텐츠 종류 e.g. 'LOOKBOOK', 'FASHION_CARD', 'COMMENT'
-  category String @db.Text
-
-  lookbook    Lookbook?    @relation(fields: [category_id], references: [id], map: "lookbook_fk")
-  fashionCard FashionCard? @relation(fields: [category_id], references: [id], map: "fashion_card_fk")
-  comment     Comment?     @relation(fields: [category_id], references: [id], map: "comment_fk")
-  category_id String       @db.Uuid
+  category    String @db.Text
+  category_id String @db.Uuid
 
   // 생성 시간 => 일정 시간 grouping하기 위해 사용
   created_time DateTime @default(now()) @db.Timestamptz()
@@ -166,7 +160,7 @@ model Like {
 }
 
 model Lookbook {
-  // Row ID
+  // Row IDO
   id           String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   // 작성자 Id
   user         User     @relation(fields: [user_id], references: [id])
@@ -182,7 +176,6 @@ model Lookbook {
   // TODO 스타일 태그 넣어야 될 것 같음
 
   Comment Comment[]
-  Like    Like[]
 
   @@map("lookbook")
 }
@@ -254,8 +247,6 @@ model Comment {
   // 삭제 시간 -> 기록할 것인가 ? 아님 진짜 지워 ? 아님 flag ?
   deleted_time DateTime? @db.Timestamptz()
 
-  Like Like[]
-
   @@map("comment")
 }
 
@@ -293,7 +284,6 @@ model FashionCard {
   img_key      String   @db.Text
   // 생성 시간
   created_time DateTime @default(now()) @db.Timestamptz()
-  Like         Like[]
 
   @@map("fashion_card")
 }

@@ -1,4 +1,4 @@
--- schema.prisma로 적용할 수 없는 sql문들 실행
+-- schema.prisma로 적용할 수 없는 제약조건 실행
 
 ALTER TABLE "like"
 ADD CONSTRAINT category
