@@ -290,4 +290,14 @@ model FashionCard {
   @@map("fashion_card")
 }
 
-// TODO card, card-wallet, my-closet, collection, admin... 정의 x
+model Views {
+  // 조회수 컨텐츠 종류 e.g LOOKBOOK, FASHION_CARD
+  category    String @db.Text
+  category_id String @db.Uuid
+  views_count Int    @default(1) @db.Integer
+
+  @@unique([category, category_id])
+  @@map("views")
+}
+
+// TODO card-wallet, my-closet, collection, admin... 정의 x

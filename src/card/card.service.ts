@@ -145,8 +145,24 @@ export class CardService {
 
   async getFashionCard(cardId: string): Promise<ResDetailCardInfo> {
     try {
-      const result = await this.dbService.fashionCard
-        .findUniqueOrThrow({
+      const result = await this.dbService.$transaction(async (tx): Promise<ResDetailCardInfo> => {
+        await tx.views.upsert({
+          where: {
+            category_category_id: {
+              category: 'FASHION_CARD',
+              category_id: cardId,
+            },
+          },
+          update: {
+            views_count: { increment: 1 },
+          },
+          create: {
+            category: 'FASHION_CARD',
+            category_id: cardId,
+          },
+        });
+
+        const data: DetailCardInfo = await tx.fashionCard.findUniqueOrThrow({
           include: {
             user: {
               select: {
@@ -166,10 +182,10 @@ export class CardService {
           where: {
             id: cardId,
           },
-        })
-        .then((data: DetailCardInfo) => {
-          return this.setDetailFashionCardInfo(data);
         });
+
+        return this.setDetailFashionCardInfo(data);
+      });
 
       return result;
     } catch (err) {
@@ -233,6 +249,10 @@ export class CardService {
 
       return cardInfo;
     } catch (err) {
+      if (err.code === 'P2025') {
+        throw new ErrorHandler(ErrorCode.NOT_FOUND, 'card_id');
+      }
+
       console.error(`getFashionCardInfo: ${err.message}`);
       throw new ErrorHandler(ErrorCode.INTERNAL_SERVER_ERROR);
     }
@@ -244,15 +264,27 @@ export class CardService {
     if (cardInfo.user_id !== userId) {
       throw new ErrorHandler(ErrorCode.FORBIDDEN, {}, '직접 등록한 게시물만 지울 수 있습니다.');
     }
+
     const cardKey = this.s3Service.setObjectKey(CARD, cardInfo.img_key);
     await this.s3Service.deleteImg(cardKey);
 
     try {
-      await this.dbService.fashionCard.delete({
-        where: {
-          id: cardId,
-          user_id: userId,
-        },
+      await this.dbService.$transaction(async (tx) => {
+        await tx.views.delete({
+          where: {
+            category_category_id: {
+              category: 'FASHION_CARD',
+              category_id: cardId,
+            },
+          },
+        });
+
+        await tx.fashionCard.delete({
+          where: {
+            id: cardId,
+            user_id: userId,
+          },
+        });
       });
     } catch (err) {
       console.error(`deleteFashionCard: ${err.message}`);
