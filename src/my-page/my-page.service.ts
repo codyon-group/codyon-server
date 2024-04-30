@@ -1,11 +1,11 @@
 import { Injectable } from '@nestjs/common';
+import { v4 as uuidV4 } from 'uuid';
 import { DbService } from '../db/db.service';
 import { ErrorHandler } from '../exception/error.exception';
 import { ErrorCode } from '../exception/error.type';
-import { ChangeUserProfile, UserProfile, UserRelationCnt } from './type';
-import { ChangeProfile } from './dto/change-profile.dto';
-import { v4 as uuidV4 } from 'uuid';
 import { PROFILE, S3Service } from '../s3/s3.service';
+import { ChangeProfile } from './dto/change-profile.dto';
+import { ChangeUserProfile, UserProfile, UserRelationCnt } from './type';
 
 @Injectable()
 export class MyPageService {
@@ -16,23 +16,27 @@ export class MyPageService {
 
   async getUserProfile(userId: string): Promise<UserProfile | null> {
     try {
-      const userProfile = await this.dbService.profile.findUniqueOrThrow({
-        select: {
-          nick_name: true,
-          img_url: true,
-          description: true,
-          gender: true,
-          height: true,
-          weight: true,
-          feet_size: true,
-          sns_id: true,
-          favorite_style: true,
-          mbti: true,
-        },
-        where: {
-          user_id: userId,
-        },
-      });
+      const userProfile = await this.dbService.profile
+        .findUniqueOrThrow({
+          select: {
+            nick_name: true,
+            img_url: true,
+            description: true,
+            gender: true,
+            height: true,
+            weight: true,
+            feet_size: true,
+            sns_id: true,
+            favorite_style: true,
+            mbti: true,
+          },
+          where: {
+            user_id: userId,
+          },
+        })
+        .then((data) => {
+          return { ...data, img_url: this.s3Service.getObjectKey(PROFILE, data.img_url) };
+        });
 
       return userProfile;
     } catch (err) {

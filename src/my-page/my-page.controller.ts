@@ -13,18 +13,14 @@ import { AuthGuard } from '../auth/auth.guard';
 import { UserReq } from '../auth/type';
 import { ErrorHandler } from '../exception/error.exception';
 import { ErrorCode } from '../exception/error.type';
+import { FileValidationPipe } from '../s3/file.validation';
 import { ChangeProfile } from './dto/change-profile.dto';
 import { MyPageService } from './my-page.service';
 import { MyPage, UserProfile } from './type';
-import { PROFILE, S3Service } from '../s3/s3.service';
-import { FileValidationPipe } from '../s3/file.validation';
 
 @Controller('api/my-page')
 export class MyPageController {
-  constructor(
-    private myPageService: MyPageService,
-    private s3Service: S3Service,
-  ) {}
+  constructor(private myPageService: MyPageService) {}
 
   // 기본 프로필 조회
   @UseGuards(AuthGuard)
@@ -37,7 +33,7 @@ export class MyPageController {
 
     const userInfo = {
       nick_name: userProfile.nick_name,
-      img_url: this.s3Service.getObjectKey(PROFILE, userProfile.img_url),
+      img_url: userProfile.img_url,
       height: userProfile.height,
       weight: userProfile.weight,
       feet_size: userProfile.feet_size,
