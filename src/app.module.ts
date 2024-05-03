@@ -1,13 +1,15 @@
 import { Module } from '@nestjs/common';
+import { ConfigModule } from '@nestjs/config';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
-import { ConfigModule } from '@nestjs/config';
-import { UserModule } from './user/user.module';
-import { DbModule } from './db/db.module';
-import { MailModule } from './mail/mail.module';
-import { CacheModule } from './cache/cache.module';
 import { AuthModule } from './auth/auth.module';
+import { CacheModule } from './cache/cache.module';
+import { CommonModule } from './common/common.module';
+import { DbModule } from './db/db.module';
+import { FilterModule } from './filter/filter.module';
 import { LikeModule } from './like/like.module';
+import { MailModule } from './mail/mail.module';
+import { UserModule } from './user/user.module';
 
 @Module({
   imports: [
@@ -18,6 +20,8 @@ import { LikeModule } from './like/like.module';
     CacheModule,
     AuthModule,
     LikeModule,
+    FilterModule,
+    CommonModule,
   ],
   controllers: [AppController],
   providers: [AppService],
