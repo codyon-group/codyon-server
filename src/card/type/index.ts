@@ -46,7 +46,9 @@ export class CardInfo {
 
 export class Card {
   id: string;
-  img_key: string;
+  card_img: string;
+  views_count: number;
+  like_count: number;
   created_time: Date;
 }
 
@@ -55,7 +57,7 @@ export class Pagination {
   is_end: boolean;
 }
 
-export class ResCard {
+export class CardDetail {
   id: string;
   card_img: string;
   created_time: Date;

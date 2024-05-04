@@ -1,39 +1,48 @@
 import {
+  Body,
   Controller,
   Delete,
   Get,
   Post,
   Query,
+  Redirect,
   Req,
   UploadedFile,
   UseGuards,
   UseInterceptors,
 } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { AuthGuard } from '../auth/auth.guard';
 import { UserReq } from '../auth/type';
 import { CheckFashionMbti } from '../interceptor/check-fashion-mbti.interceptor';
 import { FileValidationPipe } from '../s3/file.validation';
-import { CARD, S3Service } from '../s3/s3.service';
 import { CardService } from './card.service';
+import { CreateCard } from './dto/create-card.dto';
 import { DeleteCard } from './dto/delete-card.dto';
 import { CardPagination } from './dto/get-card-history.dto';
 import { CardList } from './dto/get-card-list.dto';
 import { GetCard } from './dto/get-card.dto';
-import { CardUserInfo, Pagination, ResCard, ResDetailCardInfo } from './type';
+import { Card, CardDetail, CardUserInfo, Pagination, ResDetailCardInfo } from './type';
 
 @Controller('api/card')
 export class CardController {
+  private HOST: string;
+  private PORT: string;
+
   constructor(
+    private configService: ConfigService,
     private cardService: CardService,
-    private s3Service: S3Service,
-  ) {}
+  ) {
+    this.HOST = this.configService.get('HOST');
+    this.PORT = this.configService.get('PORT');
+  }
 
   // 필터 및 검색어 사용
   @Get()
   async getFashionCardList(
     @Query() data: CardList,
-  ): Promise<{ pagination: Pagination; data: Array<ResCard> }> {
+  ): Promise<{ pagination: Pagination; data: Array<Card> }> {
     const result = await this.cardService.getFashionCardList(data);
 
     if (!result.length) {
@@ -45,18 +54,10 @@ export class CardController {
 
     const pagination = {
       cursor: result[result.length - 1].id.toString(),
-      is_end: result.length < Number(data.limit || 100),
+      is_end: result.length < data.limit,
     };
 
-    const cardList = result.map((x) => {
-      return {
-        id: x.id,
-        card_img: this.s3Service.getObjectKey(CARD, x.img_key),
-        created_time: x.created_time,
-      };
-    });
-
-    return { pagination, data: cardList };
+    return { pagination, data: result };
   }
 
   // my-page에서 조회 가능
@@ -65,8 +66,8 @@ export class CardController {
   async getFashionCardHistory(
     @Req() req: UserReq,
     @Query() data: CardPagination,
-  ): Promise<{ pagination: Pagination; data: Array<ResCard> }> {
-    const result = await this.cardService.getCardHistory(req.user.id, data.cursor, data.limit);
+  ): Promise<{ pagination: Pagination; data: Array<CardDetail> }> {
+    const result = await this.cardService.getCardHistory(req.user.id, data.limit, data.cursor);
 
     if (!result.length) {
       return {
@@ -80,15 +81,7 @@ export class CardController {
       is_end: result.length < Number(data.limit || 100),
     };
 
-    const cardHistory = result.map((x) => {
-      return {
-        id: x.id,
-        card_img: this.s3Service.setObjectKey(CARD, x.img_key),
-        created_time: x.created_time,
-      };
-    });
-
-    return { pagination, data: cardHistory };
+    return { pagination, data: result };
   }
 
   // 카드 상세 조회
@@ -113,13 +106,18 @@ export class CardController {
   @UseInterceptors(CheckFashionMbti, FileInterceptor('card'))
   @UseGuards(AuthGuard)
   @Post('')
+  @Redirect('')
   async createFashionCard(
     @Req() req: UserReq,
     @UploadedFile(new FileValidationPipe(true)) cardImg: Express.Multer.File,
-  ): Promise<{ success: boolean }> {
-    await this.cardService.createFashionCard(req.user.id, cardImg);
+    @Body() data: CreateCard,
+  ): Promise<{ sucees: boolean; url: string }> {
+    const cardId = await this.cardService.createFashionCard(req.user.id, cardImg, data.style_tag);
 
-    return { success: true };
+    return {
+      sucees: true,
+      url: `${this.HOST}:${this.PORT}/api/card/detail?card_id=${cardId}`,
+    };
   }
 
   // 카드 삭제

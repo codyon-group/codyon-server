@@ -1,11 +1,14 @@
-import { IsNumberString, IsOptional, IsUUID } from 'class-validator';
+import { Transform } from 'class-transformer';
+import { IsOptional, IsUUID, Validate } from 'class-validator';
+import { validatePaginationLimit } from '../../common/validator';
 
 export class CardPagination {
   @IsUUID()
   @IsOptional()
   cursor?: string;
 
-  @IsNumberString()
+  @Validate(validatePaginationLimit)
+  @Transform(({ value }) => Number(value))
   @IsOptional()
-  limit?: string;
+  limit? = 100;
 }

@@ -1,3 +1,4 @@
+import { Transform } from 'class-transformer';
 import {
   ArrayMaxSize,
   IsArray,
@@ -6,21 +7,19 @@ import {
   IsOptional,
   IsString,
   IsUUID,
+  Validate,
 } from 'class-validator';
-
-enum Gender {
-  MALE = 'male',
-  FEMALE = 'female',
-}
+import { Gender, validatePaginationLimit } from '../../common/validator';
 
 class CardPagination {
   @IsUUID()
   @IsOptional()
   cursor?: string;
 
-  @IsNumberString()
+  @Validate(validatePaginationLimit)
+  @Transform(({ value }) => Number(value))
   @IsOptional()
-  limit?: string;
+  limit? = 100;
 }
 
 export class CardList extends CardPagination {
@@ -55,7 +54,13 @@ export class CardList extends CardPagination {
   @IsOptional()
   mbti?: string;
 
-  @IsUUID()
+  @IsArray()
+  @IsString({ each: true })
   @IsOptional()
-  style?: string;
+  style?: string[];
+
+  @IsString()
+  @IsEnum(['view', 'like', 'new']) // 조회순, 인기순, 최신순 (default)
+  @IsOptional()
+  sort?: string;
 }
