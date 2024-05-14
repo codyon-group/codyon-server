@@ -9,6 +9,7 @@ import { ErrorCode } from '../exception/error.type';
 import { SingUpDetails } from './dto/sign-up-details.dto';
 import { SignUp } from './dto/sign-up.dto';
 import { CreateOauthUser, CreateUser } from './type';
+import { CommonService } from '../common/common.service';
 
 @Injectable()
 export class UserService {
@@ -16,6 +17,7 @@ export class UserService {
     private dbService: DbService,
     private cacheService: CacheService,
     private authService: AuthService,
+    private commonService: CommonService,
   ) {}
 
   async checkDuplicateEmail(email: string): Promise<boolean> {
@@ -157,7 +159,7 @@ export class UserService {
       weight: data.weight,
       feetSize: data.feet_size,
       gender: data.gender,
-      styles: data.styles,
+      styles: this.commonService.decryptList(data.styles),
       snsId: data.sns_id,
     };
 
@@ -241,7 +243,7 @@ export class UserService {
       weight: data.weight,
       feetSize: data.feet_size,
       gender: data.gender,
-      styles: data.styles,
+      styles: this.commonService.decryptList(data.styles),
       snsId: data.sns_id,
     };
 
