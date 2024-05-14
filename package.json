@@ -23,6 +23,7 @@
     "lint-staged": "lint-staged"
   },
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.535.0",
     "@nestjs-modules/mailer": "^1.9.1",
     "@nestjs/common": "^10.0.0",
     "@nestjs/config": "^3.1.1",
@@ -50,6 +51,7 @@
     "@nestjs/testing": "^10.0.0",
     "@types/express": "^4.17.17",
     "@types/jest": "^29.5.2",
+    "@types/multer": "^1.4.11",
     "@types/node": "^20.3.1",
     "@types/nodemailer": "^6.4.14",
     "@types/supertest": "^2.0.12",

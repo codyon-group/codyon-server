@@ -1,4 +1,17 @@
-import { IsNotEmpty, IsOptional, IsString, IsUUID, Matches } from 'class-validator';
+import {
+  IsEnum,
+  IsNotEmpty,
+  IsNumberString,
+  IsOptional,
+  IsString,
+  IsUUID,
+  Matches,
+} from 'class-validator';
+
+enum Gender {
+  MALE = 'male',
+  FEMALE = 'female',
+}
 
 export class SingUpDetails {
   // oauth 인증 세션 아이디
@@ -18,17 +31,18 @@ export class SingUpDetails {
 
   @IsString()
   @IsNotEmpty()
+  @IsEnum(Gender)
   gender: string;
 
-  @IsString()
+  @IsNumberString()
   @IsNotEmpty()
   height: string;
 
-  @IsString()
+  @IsNumberString()
   @IsNotEmpty()
   weight: string;
 
-  @IsString()
+  @IsNumberString()
   @IsNotEmpty()
   feet_size: string;
 

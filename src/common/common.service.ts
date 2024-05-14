@@ -1,6 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { createCipheriv, createDecipheriv } from 'crypto';
+import { ErrorHandler } from '../exception/error.exception';
+import { ErrorCode } from '../exception/error.type';
 
 @Injectable()
 export class CommonService {
@@ -15,28 +17,43 @@ export class CommonService {
   }
 
   encrypt(value: string): string {
-    const cipher = createCipheriv(this.ALGORITHM, this.KEY, this.IV);
+    try {
+      const cipher = createCipheriv(this.ALGORITHM, this.KEY, this.IV);
 
-    let encrypted = cipher.update(value, 'utf8', 'base64');
-    encrypted += cipher.final('base64');
+      let encrypted = cipher.update(value, 'utf8', 'base64');
+      encrypted += cipher.final('base64');
 
-    return encrypted;
+      return encrypted;
+    } catch (err) {
+      console.error(`encrypt: ${err.message}`);
+      throw new ErrorHandler(ErrorCode.INTERNAL_SERVER_ERROR);
+    }
   }
 
   decrypt(encrypted: string): string {
-    const decipher = createDecipheriv(this.ALGORITHM, this.KEY, this.IV);
+    try {
+      const decipher = createDecipheriv(this.ALGORITHM, this.KEY, this.IV);
 
-    let decrypted = decipher.update(encrypted, 'base64', 'utf8');
-    decrypted += decipher.final('utf8');
+      let decrypted = decipher.update(encrypted, 'base64', 'utf8');
+      decrypted += decipher.final('utf8');
 
-    return decrypted;
+      return decrypted;
+    } catch (err) {
+      console.error(`decrypt: ${err.message}`);
+      throw new ErrorHandler(ErrorCode.INTERNAL_SERVER_ERROR);
+    }
   }
 
   decryptList(encryptedList: string[]): string[] {
-    encryptedList.forEach((x, idx) => {
-      encryptedList[idx] = this.decrypt(x);
-    });
+    try {
+      encryptedList.forEach((x, idx) => {
+        encryptedList[idx] = this.decrypt(x);
+      });
 
-    return encryptedList;
+      return encryptedList;
+    } catch (err) {
+      console.error(`decryptList: ${err.message}`);
+      throw new ErrorHandler(ErrorCode.INTERNAL_SERVER_ERROR);
+    }
   }
 }
