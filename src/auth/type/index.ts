@@ -1,4 +1,12 @@
 import { Dayjs } from 'dayjs';
+import { Request } from 'express';
+
+export class UserReq extends Request {
+  user?: {
+    id: string;
+    accessToken: string;
+  };
+}
 
 export class UserInfo {
   id: string;

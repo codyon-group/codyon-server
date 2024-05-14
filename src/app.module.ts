@@ -7,6 +7,7 @@ import { DbModule } from './db/db.module';
 import { MailModule } from './mail/mail.module';
 import { CacheModule } from './cache/cache.module';
 import { AuthModule } from './auth/auth.module';
+import { LikeModule } from './like/like.module';
 
 @Module({
   imports: [
@@ -16,6 +17,7 @@ import { AuthModule } from './auth/auth.module';
     MailModule,
     CacheModule,
     AuthModule,
+    LikeModule,
   ],
   controllers: [AppController],
   providers: [AppService],

@@ -37,8 +37,8 @@ model User {
   // 비밀번호 → 암호화 필요
   password    String?        @db.Text
   // 약관 동의 항목을 알아야 하는지 ? // TODO 저장하지 않아도 되면 지우면 됨 현재 임ㅈ
-  term        TermsHistory?   @relation(fields: [terms_id], references: [id])
-  terms_id    String?         @db.Uuid
+  term        TermsHistory?  @relation(fields: [terms_id], references: [id])
+  terms_id    String?        @db.Uuid
   // 가입 시간
   joined_time DateTime       @default(now()) @db.Timestamptz()
   UserProfile Profile?
@@ -51,6 +51,7 @@ model User {
   Sender      Notification[] @relation("sender")
   Receiver    Notification[] @relation("receiver")
   Like        Like[]
+  FashionCard FashionCard[]
 
   @@map("user")
 }
@@ -62,7 +63,7 @@ model Profile {
   // 사용자 별칭
   nick_name      String   @unique @db.Text
   // 사용자 프로필 이미지
-  img_url      String?  @db.Text
+  img_url        String?  @db.Text
   // 사용자 신장
   height         String   @db.Text
   // 사용자 체중Ø
@@ -92,6 +93,7 @@ model Style {
 }
 
 model UserRelation {
+  id       BigInt @id @default(autoincrement())
   // 관계 타입 BLOCK | FOLLOW
   type     String @db.Text
   // 주체
@@ -143,23 +145,22 @@ model Brand {
 }
 
 model Like {
-  // Row ID
-  id       String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   // 유저 Id
-  user     User   @relation(fields: [user_id], references: [id])
-  user_id  String @db.Uuid
-  // 좋아요 누른 컨텐츠 종류 e.g. lookbook, comment..
-  category String @db.Text
+  user        User   @relation(fields: [user_id], references: [id])
+  user_id     String @db.Uuid
+  // 좋아요 누른 컨텐츠 종류 e.g. 'LOOKBOOK', 'FASHION_CARD', 'COMMENT'
+  category    String @db.Text
+  category_id String @db.Uuid
 
-  lookbook    Lookbook? @relation(fields: [category_id], references: [id], map: "lookbook_fk")
-  comment     Comment?  @relation(fields: [category_id], references: [id], map: "comment_fk")
-  category_id String    @db.Uuid
+  // 생성 시간 => 일정 시간 grouping하기 위해 사용
+  created_time DateTime @default(now()) @db.Timestamptz()
 
+  @@unique([user_id, category, category_id])
   @@map("like")
 }
 
 model Lookbook {
-  // Row ID
+  // Row IDO
   id           String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   // 작성자 Id
   user         User     @relation(fields: [user_id], references: [id])
@@ -175,7 +176,6 @@ model Lookbook {
   // TODO 스타일 태그 넣어야 될 것 같음
 
   Comment Comment[]
-  Like    Like[]
 
   @@map("lookbook")
 }
@@ -247,8 +247,6 @@ model Comment {
   // 삭제 시간 -> 기록할 것인가 ? 아님 진짜 지워 ? 아님 flag ?
   deleted_time DateTime? @db.Timestamptz()
 
-  Like Like[]
-
   @@map("comment")
 }
 
@@ -274,6 +272,20 @@ model Notification {
   read_flag   Boolean  @db.Boolean
 
   @@map("notification")
+}
+
+model FashionCard {
+  // Row ID
+  id           String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  // 유저 Id
+  user         User     @relation(fields: [user_id], references: [id])
+  user_id      String   @db.Uuid
+  // 패션 카드 이미지 key
+  img_key      String   @db.Text
+  // 생성 시간
+  created_time DateTime @default(now()) @db.Timestamptz()
+
+  @@map("fashion_card")
 }
 
 // TODO card, card-wallet, my-closet, collection, admin... 정의 x
