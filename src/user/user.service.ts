@@ -163,7 +163,8 @@ export class UserService {
     }
 
     // favorite_style 확인 -> array type 원소 fk check 안됨
-    const isValidStyleList = await this.checkFavoriteStyle(data.styles);
+    const decryptedStyle = this.commonService.decryptList(data.styles);
+    const isValidStyleList = await this.checkFavoriteStyle(decryptedStyle);
 
     if (!isValidStyleList) {
       throw new ErrorHandler(ErrorCode.NOT_FOUND, 'style_tag');
@@ -181,7 +182,7 @@ export class UserService {
       weight: data.weight,
       feetSize: data.feet_size,
       gender: data.gender,
-      styles: this.commonService.decryptList(data.styles),
+      styles: decryptedStyle,
       snsId: data.sns_id,
     };
 
@@ -256,7 +257,8 @@ export class UserService {
     }
 
     // favorite_style 확인 -> array type 원소 fk check 안됨
-    const isValidStyleList = await this.checkFavoriteStyle(data.styles);
+    const decryptedStyle = this.commonService.decryptList(data.styles);
+    const isValidStyleList = await this.checkFavoriteStyle(decryptedStyle);
 
     if (!isValidStyleList) {
       throw new ErrorHandler(ErrorCode.NOT_FOUND, 'style_tag');
@@ -272,7 +274,7 @@ export class UserService {
       weight: data.weight,
       feetSize: data.feet_size,
       gender: data.gender,
-      styles: this.commonService.decryptList(data.styles),
+      styles: decryptedStyle,
       snsId: data.sns_id,
     };
 

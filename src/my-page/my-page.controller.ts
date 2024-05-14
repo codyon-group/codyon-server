@@ -17,10 +17,14 @@ import { FileValidationPipe } from '../s3/file.validation';
 import { ChangeProfile } from './dto/change-profile.dto';
 import { MyPageService } from './my-page.service';
 import { MyPage, UserProfile } from './type';
+import { CommonService } from '../common/common.service';
 
 @Controller('api/my-page')
 export class MyPageController {
-  constructor(private myPageService: MyPageService) {}
+  constructor(
+    private myPageService: MyPageService,
+    private commonService: CommonService,
+  ) {}
 
   // 기본 프로필 조회
   @UseGuards(AuthGuard)
@@ -83,7 +87,9 @@ export class MyPageController {
 
     if (data?.favorite_style != null) {
       // favorite_style 확인 -> array type 원소 fk check 안됨
-      const isValidStyleList = await this.myPageService.checkFavoriteStyle(data.favorite_style);
+      const decryptedStyle = this.commonService.decryptList(data.favorite_style);
+      const isValidStyleList = await this.myPageService.checkFavoriteStyle(decryptedStyle);
+
       if (!isValidStyleList) {
         throw new ErrorHandler(ErrorCode.NOT_FOUND, 'favorite_style');
       }
