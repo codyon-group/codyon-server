@@ -4,15 +4,16 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { AuthModule } from './auth/auth.module';
 import { CacheModule } from './cache/cache.module';
+import { CardModule } from './card/card.module';
 import { CommonModule } from './common/common.module';
 import { DbModule } from './db/db.module';
 import { FilterModule } from './filter/filter.module';
 import { LikeModule } from './like/like.module';
 import { MailModule } from './mail/mail.module';
 import { MyPageModule } from './my-page/my-page.module';
+import { RelationModule } from './relation/relation.module';
 import { S3Module } from './s3/s3.module';
 import { UserModule } from './user/user.module';
-import { RelationModule } from './relation/relation.module';
 
 @Module({
   imports: [
@@ -28,6 +29,8 @@ import { RelationModule } from './relation/relation.module';
     MyPageModule,
     S3Module,
     RelationModule,
+    S3Module,
+    CardModule,
   ],
   controllers: [AppController],
   providers: [AppService],

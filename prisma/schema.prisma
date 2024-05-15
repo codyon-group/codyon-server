@@ -87,9 +87,10 @@ model Profile {
 // 운영자가 등록해야 함.
 model Style {
   // Row ID
-  id   String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  id          String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   // 스타일 종류 ex) 미니멀
-  type String @db.Text
+  type        String        @db.Text
+  FashionCard FashionCard[]
 
   @@map("style_tag")
 }
@@ -148,12 +149,11 @@ model Brand {
 
 model Like {
   // 유저 Id
-  user        User   @relation(fields: [user_id], references: [id])
-  user_id     String @db.Uuid
+  user         User     @relation(fields: [user_id], references: [id])
+  user_id      String   @db.Uuid
   // 좋아요 누른 컨텐츠 종류 e.g. 'LOOKBOOK', 'FASHION_CARD', 'COMMENT'
-  category    String @db.Text
-  category_id String @db.Uuid
-
+  category     String   @db.Text
+  category_id  String   @db.Uuid
   // 생성 시간 => 일정 시간 grouping하기 위해 사용
   created_time DateTime @default(now()) @db.Timestamptz()
 
@@ -284,10 +284,23 @@ model FashionCard {
   user_id      String   @db.Uuid
   // 패션 카드 이미지 key
   img_key      String   @db.Text
+  // 패션 카드 스타일
+  style        Style    @relation(fields: [style_tag], references: [id])
+  style_tag    String   @db.Uuid
   // 생성 시간
   created_time DateTime @default(now()) @db.Timestamptz()
 
   @@map("fashion_card")
 }
 
-// TODO card, card-wallet, my-closet, collection, admin... 정의 x
+model Views {
+  // 조회수 컨텐츠 종류 e.g LOOKBOOK, FASHION_CARD
+  category    String @db.Text
+  category_id String @db.Uuid
+  views_count Int    @default(1) @db.Integer
+
+  @@unique([category, category_id])
+  @@map("views")
+}
+
+// TODO card-wallet, my-closet, collection, admin... 정의 x

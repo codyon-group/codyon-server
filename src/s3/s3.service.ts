@@ -5,6 +5,7 @@ import { ErrorHandler } from '../exception/error.exception';
 import { ErrorCode } from '../exception/error.type';
 
 export const PROFILE = 'profile';
+export const CARD = 'fashion-card';
 
 @Injectable()
 export class S3Service {
@@ -12,6 +13,7 @@ export class S3Service {
   private bucket: string;
   private cdn: string;
   private profileFolder: string;
+  private cardFolder: string;
 
   constructor(private configService: ConfigService) {
     const s3Client = new S3Client({
@@ -26,22 +28,27 @@ export class S3Service {
     this.bucket = this.configService.get('AWS_S3_BUCKET');
     this.cdn = this.configService.get('AWS_CDN_DOMIN');
     this.profileFolder = this.configService.get('AWS_S3_FOLDER_PROFILE');
+    this.cardFolder = this.configService.get('AWS_S3_FOLDER_CARD');
   }
 
   get client(): S3Client {
     return this.s3Client;
   }
 
+  // for s3 update & delete
   setObjectKey(type: string, key: string): string {
     switch (type) {
       case PROFILE:
         return `${this.profileFolder}${key}`;
+      case CARD:
+        return `${this.cardFolder}${key}`;
       default:
         console.error(`setObjectKey: not defined object type`);
         throw new ErrorHandler(ErrorCode.INTERNAL_SERVER_ERROR);
     }
   }
 
+  // for cdn get
   getObjectKey(type: string, key: string): string | null {
     switch (type) {
       case PROFILE:
@@ -50,6 +57,8 @@ export class S3Service {
         // oauth login시 등록한 profile인 경우
         if (key.startsWith('http')) return key;
         return `${this.cdn}${this.profileFolder}${key}`;
+      case CARD:
+        return `${this.cdn}${this.cardFolder}${key}`;
       default:
         console.error(`getObjectKey: not defined object type`);
         throw new ErrorHandler(ErrorCode.INTERNAL_SERVER_ERROR);
