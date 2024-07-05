@@ -2,7 +2,7 @@ name: Codyon Server CI/CD
 
 on:
   push:
-    branches: [feat/docker]
+    branches: [main]
 
 jobs:
   build-and-deploy:
