@@ -15,7 +15,7 @@ export class CacheService {
       retryStrategy: (): number => {
         console.error('auth Redis connection interruption');
         console.error('Retrying');
-        return this.configService.get('REDIS_TIMEOUT'); // ms
+        return this.configService.get<number>('REDIS_TIMEOUT'); // ms
       },
     });
 
