@@ -3,6 +3,10 @@ name: Codyon Server CI/CD
 on:
   push:
     branches: [main]
+    paths:
+      - "src/*"
+      - "docker*"
+      - ".github/workflows/deploy.yml"
 
 jobs:
   build-and-deploy:
@@ -15,7 +19,7 @@ jobs:
         uses: docker/login-action@v3
         with:
           registry: ghcr.io
-          username: ${{ github.actor }}
+          username: ${{ secrets.BUILDER }}
           password: ${{ secrets.BUILD_TOKEN }}
 
       - name: Docker meta
