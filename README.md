@@ -26,3 +26,7 @@ NestJs, Typescript, Prisma, Postgresql, Redis, AWS(EC2, S3, CloudFront), Docker,
 
 ## DB ERD
 ![image](https://github.com/user-attachments/assets/826afa6f-4900-424e-8502-4ae3e18bee81)
+
+## CI/CD Workflow
+![image](https://github.com/user-attachments/assets/5a21e9f8-5716-4c27-a70b-411c7c0b3079)
+
