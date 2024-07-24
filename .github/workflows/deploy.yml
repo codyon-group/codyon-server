@@ -1,5 +1,8 @@
 name: Codyon Server CI/CD
 
+env:
+  DOCKER_IMAGES: ghcr.io/${{ github.repository_owner }}/codyon-server
+
 on:
   push:
     branches: [main]
@@ -9,7 +12,7 @@ on:
       - ".github/workflows/deploy.yml"
 
 jobs:
-  build-and-deploy:
+  build:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -21,12 +24,13 @@ jobs:
           registry: ghcr.io
           username: ${{ secrets.BUILDER }}
           password: ${{ secrets.BUILD_TOKEN }}
+          logout: true
 
       - name: Docker meta
         id: meta
         uses: docker/metadata-action@v5
         with:
-          images: ghcr.io/${{ github.repository_owner }}/codyon-server
+          images: ${{ env.DOCKER_IMAGES }}
           tags: |
             latest
             ${{ github.sha }}
@@ -40,15 +44,12 @@ jobs:
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
 
-      - name: Logout from GitHub Container Registry
-        if: always()
-        run: docker logout ghcr.io
-
+  deploy:
+    needs: build
+    runs-on: self-hosted
+    steps:
       - name: deploy to ec2
-        uses: appleboy/ssh-action@v1.0.3
-        with:
-          host: ${{ secrets.REMOTE_SSH_HOST }}
-          key: ${{ secrets.REMOTE_SSH_KEY }}
-          username: ubuntu
-          port: 22
-          script: sh /etc/codyon/deploy.sh
+        env:
+          DOCKER_USERNAME: ${{ secrets.BUILDER }}
+          DOCKER_PASSWORD: ${{ secrets.BUILD_TOKEN }}
+        run: sh /etc/codyon/deploy.sh
